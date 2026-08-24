@@ -512,29 +512,9 @@
       { id: 'CMP-105', type: 'Broken Valve', name: 'Rohan Joshi', zone: 'Zone D – Kharghar', priority: 'LOW', status: 'Reported' },
     ];
 
-    // Real Google Sign-in trigger
+    // Google Sign-in trigger
     function triggerGoogleSignIn() {
-      // If Google Identity Services is initialized
-      if (window.google && window.google.accounts && window.google.accounts.oauth2) {
-        try {
-          const client = google.accounts.oauth2.initTokenClient({
-            client_id: '1088657682334-demo.apps.googleusercontent.com',
-            scope: 'email profile openid',
-            callback: (response) => {
-              handleAuthLogin('Google Citizen', 'citizen@gmail.com', 'citizen');
-            },
-            error_callback: () => {
-              showGoogleAccountsPicker();
-            }
-          });
-          client.requestAccessToken({ prompt: 'select_account' });
-          return;
-        } catch (e) {
-          showGoogleAccountsPicker();
-        }
-      } else {
-        showGoogleAccountsPicker();
-      }
+      showGoogleAccountsPicker();
     }
 
     function showGoogleAccountsPicker() {
