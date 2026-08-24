@@ -514,21 +514,26 @@
       }
     });
 
-    // Real-time Cloud Sync for Citizen Complaints across all devices
-    db.collection("complaints").orderBy("createdAt", "desc").onSnapshot((snapshot) => {
-      if (!snapshot.empty) {
-        const cloudComplaints = [];
-        snapshot.forEach((doc) => {
-          cloudComplaints.push({ id: doc.id, ...doc.data() });
-        });
-        // Merge cloud complaints with default set
-        complaintsData = cloudComplaints;
-      }
-      renderComplaints();
-      renderMapComplaints();
-    }, (error) => {
-      console.warn("Firestore real-time sync notice:", error.message);
-    });
+    // Robust Real-time Cloud Sync for Citizen Complaints across all devices
+    try {
+      db.collection("complaints").onSnapshot((snapshot) => {
+        if (snapshot && !snapshot.empty) {
+          const cloudComplaints = [];
+          snapshot.forEach((doc) => {
+            cloudComplaints.push({ id: doc.id, ...doc.data() });
+          });
+          // Sort newest first in memory
+          cloudComplaints.sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0));
+          complaintsData = cloudComplaints;
+          renderComplaints();
+          renderMapComplaints();
+        }
+      }, (error) => {
+        console.warn("Firestore live stream warning:", error.message);
+      });
+    } catch (e) {
+      console.warn("Firestore init notice:", e);
+    }
 
     const sensorData = [
       { id: 'FA-101', type: 'Flow Sensor', zone: 'Zone A – Vashi', val: 780, unit: 'L/min', status: 'normal', lat: 19.0770, lng: 72.9980 },
@@ -920,7 +925,7 @@
         priority: 'HIGH',
         status: 'Reported',
         time: timeStr,
-        createdAt: firebase.firestore.FieldValue.serverTimestamp()
+        timestamp: Date.now()
       };
 
       // 1. Immediately update UI locally
@@ -932,10 +937,10 @@
       // 2. Sync to Firebase Cloud Firestore for all users & Admin
       try {
         await db.collection("complaints").doc(newId).set(newCmp);
-        alert('✅ Issue submitted! Synced across all connected devices and Admin dispatch.');
+        alert('✅ Issue submitted! Synced to NMMC Municipal Cloud Database.');
       } catch (err) {
-        console.warn("Saved locally, cloud sync error:", err);
-        alert('✅ Issue submitted! Municipal field dispatch has been alerted.');
+        console.warn("Firestore save error:", err);
+        alert('✅ Issue submitted! (Note: Enable Cloud Firestore in Firebase Console if not done yet).');
       }
     }
 
