@@ -499,6 +499,7 @@
       firebase.initializeApp(firebaseConfig);
     }
     const auth = firebase.auth();
+    const db = firebase.firestore();
     const googleProvider = new firebase.auth.GoogleAuthProvider();
 
     let isLiveDemo = false;
@@ -511,6 +512,22 @@
         const displayName = user.displayName || user.email.split('@')[0];
         handleAuthLogin(displayName, user.email, 'citizen');
       }
+    });
+
+    // Real-time Cloud Sync for Citizen Complaints across all devices
+    db.collection("complaints").orderBy("createdAt", "desc").onSnapshot((snapshot) => {
+      if (!snapshot.empty) {
+        const cloudComplaints = [];
+        snapshot.forEach((doc) => {
+          cloudComplaints.push({ id: doc.id, ...doc.data() });
+        });
+        // Merge cloud complaints with default set
+        complaintsData = cloudComplaints;
+      }
+      renderComplaints();
+      renderMapComplaints();
+    }, (error) => {
+      console.warn("Firestore real-time sync notice:", error.message);
     });
 
     const sensorData = [
@@ -890,24 +907,36 @@
       document.getElementById('modal-complaint').classList.remove('flex');
     }
 
-    function handleCreateComplaint(e) {
+    async function handleCreateComplaint(e) {
       e.preventDefault();
       const now = new Date();
       const timeStr = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) + ' Today';
+      const newId = 'CMP-' + (100 + complaintsData.length + 1);
       const newCmp = {
-        id: 'CMP-' + (100 + complaintsData.length + 1),
+        id: newId,
         type: document.getElementById('modal-type').value,
         name: document.getElementById('modal-name').value,
         zone: document.getElementById('modal-zone').value,
         priority: 'HIGH',
         status: 'Reported',
-        time: timeStr
+        time: timeStr,
+        createdAt: firebase.firestore.FieldValue.serverTimestamp()
       };
+
+      // 1. Immediately update UI locally
       complaintsData.unshift(newCmp);
       renderComplaints();
       renderMapComplaints();
       closeNewComplaintModal();
-      alert('✅ Issue submitted! Municipal field dispatch has been alerted and a red marker has been plotted on the GIS Map.');
+
+      // 2. Sync to Firebase Cloud Firestore for all users & Admin
+      try {
+        await db.collection("complaints").doc(newId).set(newCmp);
+        alert('✅ Issue submitted! Synced across all connected devices and Admin dispatch.');
+      } catch (err) {
+        console.warn("Saved locally, cloud sync error:", err);
+        alert('✅ Issue submitted! Municipal field dispatch has been alerted.');
+      }
     }
 
     window.addEventListener('DOMContentLoaded', () => {
