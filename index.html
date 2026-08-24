@@ -331,11 +331,19 @@
             <h3 class="font-bold text-slate-900">Navi Mumbai Urban Water Network (GIS)</h3>
             <p class="text-xs text-slate-500">Includes 5 elevated storage reservoirs, 3 booster pump stations, transmission pipelines, telemetry sensors & citizen complaints across NMMC</p>
           </div>
-          <div class="flex items-center gap-3 text-xs">
-            <span class="flex items-center gap-1.5"><span class="w-3 h-3 rounded-full bg-blue-600"></span> Tanks</span>
-            <span class="flex items-center gap-1.5"><span class="w-3 h-3 rounded-full bg-purple-600"></span> Pump Stations</span>
-            <span class="flex items-center gap-1.5"><span class="w-3 h-3 rounded-full bg-cyan-600"></span> Sensors</span>
-            <span class="flex items-center gap-1.5"><span class="w-3 h-3 rounded-full bg-rose-600"></span> Burst Leaks</span>
+          <div class="flex items-center gap-2 text-xs">
+            <button onclick="flyToMapFeature('tank')" class="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-blue-50 hover:bg-blue-100 text-blue-800 font-semibold border border-blue-200 transition-all cursor-pointer shadow-sm">
+              <span class="w-3 h-3 rounded-full bg-blue-600"></span> Tanks (5)
+            </button>
+            <button onclick="flyToMapFeature('pump')" class="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-purple-50 hover:bg-purple-100 text-purple-800 font-semibold border border-purple-200 transition-all cursor-pointer shadow-sm">
+              <span class="w-3 h-3 rounded-full bg-purple-600"></span> Pump Stations (1)
+            </button>
+            <button onclick="flyToMapFeature('sensor')" class="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-cyan-50 hover:bg-cyan-100 text-cyan-800 font-semibold border border-cyan-200 transition-all cursor-pointer shadow-sm">
+              <span class="w-3 h-3 rounded-full bg-cyan-600"></span> Sensors (10)
+            </button>
+            <button onclick="flyToMapFeature('complaint')" class="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-rose-50 hover:bg-rose-100 text-rose-800 font-semibold border border-rose-200 transition-all cursor-pointer shadow-sm">
+              <span class="w-3 h-3 rounded-full bg-rose-600"></span> Complaints
+            </button>
           </div>
         </div>
 
@@ -680,7 +688,12 @@
       });
     }
 
-    let complaintsLayerGroup = null;
+    const mapMarkers = {
+      tank: [],
+      pump: [],
+      sensor: [],
+      complaint: []
+    };
 
     function initMap() {
       if (leafletMap) {
@@ -702,23 +715,26 @@
       ];
 
       assets.forEach(a => {
-        L.circleMarker([a.lat, a.lng], {
+        const marker = L.circleMarker([a.lat, a.lng], {
           radius: 9,
           fillColor: a.type === 'tank' ? '#2563eb' : '#9333ea',
           color: '#ffffff',
           weight: 2,
           fillOpacity: 0.9
         }).addTo(leafletMap).bindPopup(`<b>${a.name}</b><br>Type: ${a.type.toUpperCase()}`);
+        if (a.type === 'tank') mapMarkers.tank.push(marker);
+        if (a.type === 'pump') mapMarkers.pump.push(marker);
       });
 
       sensorData.forEach(s => {
-        L.circleMarker([s.lat, s.lng], {
+        const marker = L.circleMarker([s.lat, s.lng], {
           radius: 7,
           fillColor: s.status === 'warning' ? '#f59e0b' : '#06b6d4',
           color: '#ffffff',
           weight: 2,
           fillOpacity: 0.9
         }).addTo(leafletMap).bindPopup(`<b>Sensor ${s.id} (${s.type})</b><br>Zone: ${s.zone}<br>Reading: <b>${s.val} ${s.unit}</b>`);
+        mapMarkers.sensor.push(marker);
       });
 
       // Blue line: Primary NMMC Water Transmission Main
@@ -738,6 +754,26 @@
 
       complaintsLayerGroup = L.layerGroup().addTo(leafletMap);
       renderMapComplaints();
+    }
+
+    function flyToMapFeature(type) {
+      if (!leafletMap) return;
+      const targets = {
+        pump: [19.0180, 73.0410, 15],       // CBD Belapur Booster Pump Station
+        tank: [19.0330, 73.0180, 14],       // Nerul Reservoir
+        sensor: [19.0770, 72.9980, 14],     // Vashi Telemetry Sensor
+        complaint: [19.0190, 73.0380, 15]   // Belapur Leakage Incident
+      };
+      const dest = targets[type] || [19.0430, 73.0297, 12];
+      leafletMap.flyTo([dest[0], dest[1]], dest[2], { duration: 1.2 });
+      
+      // Auto open popup for the target
+      setTimeout(() => {
+        if (type === 'pump' && mapMarkers.pump[0]) mapMarkers.pump[0].openPopup();
+        if (type === 'tank' && mapMarkers.tank[1]) mapMarkers.tank[1].openPopup();
+        if (type === 'sensor' && mapMarkers.sensor[0]) mapMarkers.sensor[0].openPopup();
+        if (type === 'complaint' && mapMarkers.complaint[0]) mapMarkers.complaint[0].openPopup();
+      }, 1300);
     }
 
     function renderMapComplaints() {
@@ -779,6 +815,7 @@
           </div>
         `);
 
+        mapMarkers.complaint.push(marker);
         complaintsLayerGroup.addLayer(marker);
       });
     }
