@@ -506,9 +506,9 @@
       { id: 'PA-201', type: 'Pressure Sensor', zone: 'Zone A – Vashi', val: 2.8, unit: 'bar', status: 'normal', lat: 19.0740, lng: 73.0030 },
       { id: 'FB-102', type: 'Flow Sensor', zone: 'Zone B – Nerul', val: 860, unit: 'L/min', status: 'normal', lat: 19.0330, lng: 73.0180 },
       { id: 'TB-301', type: 'Tank Level', zone: 'Zone B – Nerul', val: 74, unit: '%', status: 'normal', lat: 19.0310, lng: 73.0150 },
-      { id: 'FC-103', type: 'Flow Sensor', zone: 'Zone C – Belapur', val: 420, unit: 'L/min', status: 'warning', lat: 19.0180, lng: 73.0410 },
-      { id: 'PC-202', type: 'Pressure Sensor', zone: 'Zone C – Belapur', val: 1.2, unit: 'bar', status: 'warning', lat: 19.0150, lng: 73.0390 },
-      { id: 'MC-401', type: 'Water Meter', zone: 'Zone C – Belapur', val: 680, unit: 'L/h', status: 'normal', lat: 19.0190, lng: 73.0430 },
+      { id: 'FC-103', type: 'Flow Sensor', zone: 'Zone C – Belapur', val: 420, unit: 'L/min', status: 'warning', lat: 19.0140, lng: 73.0450 },
+      { id: 'PC-202', type: 'Pressure Sensor', zone: 'Zone C – Belapur', val: 1.2, unit: 'bar', status: 'warning', lat: 19.0120, lng: 73.0370 },
+      { id: 'MC-401', type: 'Water Meter', zone: 'Zone C – Belapur', val: 680, unit: 'L/h', status: 'normal', lat: 19.0220, lng: 73.0440 },
       { id: 'FD-104', type: 'Flow Sensor', zone: 'Zone D – Kharghar', val: 790, unit: 'L/min', status: 'normal', lat: 19.0470, lng: 73.0690 },
       { id: 'PD-203', type: 'Pressure Sensor', zone: 'Zone D – Kharghar', val: 0.0, unit: 'bar', status: 'offline', lat: 19.0490, lng: 73.0650 },
       { id: 'TE-302', type: 'Tank Level', zone: 'Zone E – Airoli', val: 88, unit: '%', status: 'normal', lat: 19.1550, lng: 72.9980 },
@@ -715,13 +715,14 @@
       ];
 
       assets.forEach(a => {
+        const isPump = a.type === 'pump';
         const marker = L.circleMarker([a.lat, a.lng], {
-          radius: 9,
-          fillColor: a.type === 'tank' ? '#2563eb' : '#9333ea',
+          radius: isPump ? 11 : 9,
+          fillColor: isPump ? '#a855f7' : '#2563eb',
           color: '#ffffff',
-          weight: 2,
-          fillOpacity: 0.9
-        }).addTo(leafletMap).bindPopup(`<b>${a.name}</b><br>Type: ${a.type.toUpperCase()}`);
+          weight: 2.5,
+          fillOpacity: 1
+        }).addTo(leafletMap).bindPopup(`<b>${a.name}</b><br>Type: <span class="font-bold uppercase ${isPump ? 'text-purple-600' : 'text-blue-600'}">${a.type}</span>`);
         if (a.type === 'tank') mapMarkers.tank.push(marker);
         if (a.type === 'pump') mapMarkers.pump.push(marker);
       });
