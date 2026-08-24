@@ -640,12 +640,15 @@
       });
     }
 
+    let complaintsLayerGroup = null;
+
     function initMap() {
       if (leafletMap) {
         leafletMap.invalidateSize();
+        renderMapComplaints();
         return;
       }
-      leafletMap = L.map('gis-map').setView([19.0330, 73.0297], 12);
+      leafletMap = L.map('gis-map').setView([19.0430, 73.0297], 12);
       L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
         attribution: '&copy; OpenStreetMap'
       }).addTo(leafletMap);
@@ -678,18 +681,65 @@
         }).addTo(leafletMap).bindPopup(`<b>Sensor ${s.id} (${s.type})</b><br>Zone: ${s.zone}<br>Reading: <b>${s.val} ${s.unit}</b>`);
       });
 
+      // Blue line: Primary NMMC Water Transmission Main
       L.polyline([
         [19.1550, 72.9980],
         [19.0770, 72.9980],
         [19.0330, 73.0180],
         [19.0180, 73.0410],
         [19.0470, 73.0690]
-      ], { color: '#3b82f6', weight: 4, opacity: 0.7 }).addTo(leafletMap).bindPopup('NMMC 900mm Main Feeder Line (Airoli to Kharghar)');
+      ], { color: '#2563eb', weight: 5, opacity: 0.85 }).addTo(leafletMap).bindPopup('<b>🔵 Blue Line: Primary 900mm Transmission Pipeline</b><br>Supplies bulk water from Airoli to Kharghar across Navi Mumbai.');
 
+      // Red dashed line: Leakage alert feeder branch
       L.polyline([
         [19.0330, 73.0180],
         [19.0180, 73.0410]
-      ], { color: '#ef4444', weight: 4, dashArray: '6, 6', opacity: 0.8 }).addTo(leafletMap).bindPopup('⚠️ Belapur Feeder Branch (High Loss Identified: 22.7%)');
+      ], { color: '#ef4444', weight: 4, dashArray: '6, 6', opacity: 0.85 }).addTo(leafletMap).bindPopup('<b>🔴 Red Dashed Line: Belapur Feeder Branch</b><br>⚠️ High Leakage/Loss identified (22.7%).');
+
+      complaintsLayerGroup = L.layerGroup().addTo(leafletMap);
+      renderMapComplaints();
+    }
+
+    function renderMapComplaints() {
+      if (!leafletMap || !complaintsLayerGroup) return;
+      complaintsLayerGroup.clearLayers();
+
+      const zoneCoords = {
+        'Zone A – Vashi': [19.0740, 72.9990],
+        'Zone B – Nerul': [19.0310, 73.0210],
+        'Zone C – CBD Belapur': [19.0190, 73.0380],
+        'Zone D – Kharghar': [19.0450, 73.0670],
+        'Zone E – Airoli': [19.1520, 72.9950]
+      };
+
+      complaintsData.forEach((c, idx) => {
+        const base = zoneCoords[c.zone] || [19.0330, 73.0297];
+        const offsetLat = base[0] + (idx * 0.002);
+        const offsetLng = base[1] + (idx * 0.002);
+
+        const marker = L.circleMarker([offsetLat, offsetLng], {
+          radius: 8,
+          fillColor: '#e11d48',
+          color: '#ffffff',
+          weight: 2,
+          fillOpacity: 1
+        });
+
+        marker.bindPopup(`
+          <div class="p-1 space-y-1">
+            <div class="flex items-center gap-1">
+              <span class="px-1.5 py-0.5 bg-rose-100 text-rose-700 text-[10px] font-bold rounded">⚠️ COMPLAINT</span>
+              <span class="font-mono text-xs font-bold text-slate-700">${c.id}</span>
+            </div>
+            <p class="font-bold text-xs text-slate-900 mt-1">${c.type}</p>
+            <p class="text-[11px] text-slate-600">👤 <b>Citizen:</b> ${c.name}</p>
+            <p class="text-[11px] text-slate-600">📍 <b>Location:</b> ${c.zone}</p>
+            <p class="text-[11px] text-slate-600">📊 <b>Status:</b> <span class="font-semibold text-blue-600">${c.status}</span></p>
+          </div>
+        `);
+
+        complaintsLayerGroup.addLayer(marker);
+      });
     }
 
     function toggleLiveDemo() {
@@ -742,8 +792,9 @@
       };
       complaintsData.unshift(newCmp);
       renderComplaints();
+      renderMapComplaints();
       closeNewComplaintModal();
-      alert('✅ Issue submitted! Municipal field dispatch has been alerted.');
+      alert('✅ Issue submitted! Municipal field dispatch has been alerted and a red marker has been plotted on the GIS Map.');
     }
 
     window.addEventListener('DOMContentLoaded', () => {
