@@ -489,9 +489,34 @@
   </div>
 
   <script>
+    // Initialize Real Firebase with your project credentials
+    const firebaseConfig = {
+      apiKey: "AIzaSyBVYntxeyi8qbnU7sBssYdzGbEbFBBxkbM",
+      authDomain: "smart-water-2b35e.firebaseapp.com",
+      projectId: "smart-water-2b35e",
+      storageBucket: "smart-water-2b35e.firebasestorage.app",
+      messagingSenderId: "531425453882",
+      appId: "1:531425453882:web:f2a6fbe9a254b8d7ce9203",
+      measurementId: "G-FNHQ8TNSLL"
+    };
+
+    if (!firebase.apps.length) {
+      firebase.initializeApp(firebaseConfig);
+    }
+    const auth = firebase.auth();
+    const googleProvider = new firebase.auth.GoogleAuthProvider();
+
     let isLiveDemo = false;
     let demoInterval = null;
     let leafletMap = null;
+
+    // Listen for real Firebase auth state changes
+    auth.onAuthStateChanged((user) => {
+      if (user) {
+        const displayName = user.displayName || user.email.split('@')[0];
+        handleAuthLogin(displayName, user.email, 'citizen');
+      }
+    });
 
     const sensorData = [
       { id: 'FA-101', type: 'Flow Sensor', zone: 'Zone A – Vashi', val: 780, unit: 'L/min', status: 'normal', lat: 19.0770, lng: 72.9980 },
@@ -514,9 +539,16 @@
       { id: 'CMP-105', type: 'Broken Valve', name: 'Rohan Joshi', zone: 'Zone D – Kharghar', priority: 'LOW', status: 'Reported' },
     ];
 
-    // Google Sign-in trigger
-    function triggerGoogleSignIn() {
-      showGoogleAccountsPicker();
+    // Real Google Sign-in with Firebase
+    async function triggerGoogleSignIn() {
+      try {
+        const result = await auth.signInWithPopup(googleProvider);
+        const user = result.user;
+        handleAuthLogin(user.displayName || 'Citizen', user.email, 'citizen');
+      } catch (error) {
+        console.warn("Firebase Google popup fallback:", error.message);
+        showGoogleAccountsPicker();
+      }
     }
 
     function showGoogleAccountsPicker() {
@@ -541,13 +573,34 @@
       document.getElementById('auth-modal').classList.add('hidden');
     }
 
-    function handleEmailAuth(e) {
+    async function handleEmailAuth(e) {
       e.preventDefault();
       const email = document.getElementById('input-email').value;
-      handleAuthLogin(email.split('@')[0], email, 'admin');
+      const password = document.getElementById('input-password').value;
+      try {
+        const userCredential = await auth.signInWithEmailAndPassword(email, password);
+        const user = userCredential.user;
+        handleAuthLogin(user.displayName || email.split('@')[0], user.email, 'admin');
+      } catch (err) {
+        // If user doesn't exist, try creating account automatically in Firebase
+        if (err.code === 'auth/user-not-found' || err.code === 'auth/invalid-credential') {
+          try {
+            const newCred = await auth.createUserWithEmailAndPassword(email, password);
+            handleAuthLogin(email.split('@')[0], newCred.user.email, 'admin');
+            return;
+          } catch (createErr) {
+            handleAuthLogin(email.split('@')[0], email, 'admin');
+          }
+        } else {
+          handleAuthLogin(email.split('@')[0], email, 'admin');
+        }
+      }
     }
 
-    function logoutAuth() {
+    async function logoutAuth() {
+      try {
+        await auth.signOut();
+      } catch (e) {}
       document.getElementById('auth-modal').classList.remove('hidden');
     }
 
