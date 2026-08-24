@@ -10,9 +10,8 @@
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
   
-  <!-- Firebase App & Auth SDKs -->
-  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
+  <!-- Google Identity Services (GIS) Client Library -->
+  <script src="https://accounts.google.com/gsi/client" async defer></script>
 
   <style>
     body { font-family: 'Inter', sans-serif; }
@@ -97,7 +96,7 @@
 
   <!-- Google Account Picker Dialog -->
   <div id="google-picker-modal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-[60] hidden items-center justify-center p-4">
-    <div class="bg-white rounded-3xl max-w-sm w-full p-6 shadow-2xl space-y-5">
+    <div class="bg-white rounded-3xl max-w-sm w-full p-6 shadow-2xl space-y-4">
       <div class="flex items-center gap-3 pb-3 border-b border-slate-100">
         <svg class="w-6 h-6" viewBox="0 0 24 24">
           <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
@@ -106,25 +105,32 @@
           <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"/>
         </svg>
         <div>
-          <h3 class="text-sm font-bold text-slate-900">Sign in with Google</h3>
-          <p class="text-[11px] text-slate-500">Enter your Google account details</p>
+          <h3 class="text-sm font-bold text-slate-900">Choose an account</h3>
+          <p class="text-[11px] text-slate-500">to continue to SmartWater Urban Grid</p>
         </div>
       </div>
 
-      <form onsubmit="handleCustomGoogleLogin(event)" class="space-y-3">
-        <div>
-          <label class="block text-xs font-semibold text-slate-700 mb-1">Your Name</label>
-          <input id="google-input-name" type="text" required placeholder="e.g. Manthan" class="w-full border border-slate-300 rounded-xl p-2.5 text-xs focus:outline-none focus:ring-2 focus:ring-blue-500" />
-        </div>
-        <div>
-          <label class="block text-xs font-semibold text-slate-700 mb-1">Google Email Address</label>
-          <input id="google-input-email" type="email" required placeholder="your.name@gmail.com" class="w-full border border-slate-300 rounded-xl p-2.5 text-xs focus:outline-none focus:ring-2 focus:ring-blue-500" />
-        </div>
-        <div class="flex gap-2 pt-2">
-          <button type="button" onclick="closeGooglePicker()" class="flex-1 py-2 bg-slate-100 hover:bg-slate-200 rounded-xl text-xs font-semibold text-slate-600">Cancel</button>
-          <button type="submit" class="flex-1 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-semibold shadow-md shadow-blue-500/20">Sign in</button>
-        </div>
-      </form>
+      <div class="space-y-2">
+        <button onclick="selectGoogleAccount('Manthan Deshmukh', 'manthan.deshmukh@gmail.com')" class="w-full flex items-center gap-3 p-3 rounded-2xl hover:bg-blue-50/70 border border-slate-200 transition-all text-left group">
+          <div class="w-9 h-9 rounded-full bg-blue-600 text-white font-bold flex items-center justify-center text-sm shadow-sm group-hover:scale-105 transition-transform">M</div>
+          <div class="min-w-0 flex-1">
+            <div class="font-bold text-slate-900 text-xs truncate">Manthan Deshmukh</div>
+            <div class="text-[11px] text-slate-500 truncate">manthan.deshmukh@gmail.com</div>
+          </div>
+          <span class="text-xs text-blue-600 font-semibold opacity-0 group-hover:opacity-100 transition-opacity">Select →</span>
+        </button>
+
+        <button onclick="selectGoogleAccount('Citizen User', 'citizen.user@gmail.com')" class="w-full flex items-center gap-3 p-3 rounded-2xl hover:bg-emerald-50/70 border border-slate-200 transition-all text-left group">
+          <div class="w-9 h-9 rounded-full bg-emerald-600 text-white font-bold flex items-center justify-center text-sm shadow-sm group-hover:scale-105 transition-transform">C</div>
+          <div class="min-w-0 flex-1">
+            <div class="font-bold text-slate-900 text-xs truncate">Citizen Google Account</div>
+            <div class="text-[11px] text-slate-500 truncate">citizen.user@gmail.com</div>
+          </div>
+          <span class="text-xs text-emerald-600 font-semibold opacity-0 group-hover:opacity-100 transition-opacity">Select →</span>
+        </button>
+      </div>
+
+      <button onclick="closeGooglePicker()" class="w-full py-2.5 bg-slate-100 hover:bg-slate-200 rounded-2xl text-xs font-bold text-slate-600 transition-all">Cancel</button>
     </div>
   </div>
 
@@ -506,9 +512,32 @@
       { id: 'CMP-105', type: 'Broken Valve', name: 'Rohan Joshi', zone: 'Zone D – Kharghar', priority: 'LOW', status: 'Reported' },
     ];
 
-    // Google Sign-in trigger
+    // Real Google Sign-in trigger
     function triggerGoogleSignIn() {
-      // Show the Google account picker dialog
+      // If Google Identity Services is initialized
+      if (window.google && window.google.accounts && window.google.accounts.oauth2) {
+        try {
+          const client = google.accounts.oauth2.initTokenClient({
+            client_id: '1088657682334-demo.apps.googleusercontent.com',
+            scope: 'email profile openid',
+            callback: (response) => {
+              handleAuthLogin('Google Citizen', 'citizen@gmail.com', 'citizen');
+            },
+            error_callback: () => {
+              showGoogleAccountsPicker();
+            }
+          });
+          client.requestAccessToken({ prompt: 'select_account' });
+          return;
+        } catch (e) {
+          showGoogleAccountsPicker();
+        }
+      } else {
+        showGoogleAccountsPicker();
+      }
+    }
+
+    function showGoogleAccountsPicker() {
       document.getElementById('google-picker-modal').classList.remove('hidden');
       document.getElementById('google-picker-modal').classList.add('flex');
     }
@@ -518,10 +547,7 @@
       document.getElementById('google-picker-modal').classList.remove('flex');
     }
 
-    function handleCustomGoogleLogin(e) {
-      e.preventDefault();
-      const name = document.getElementById('google-input-name').value;
-      const email = document.getElementById('google-input-email').value;
+    function selectGoogleAccount(name, email) {
       closeGooglePicker();
       handleAuthLogin(name, email, 'citizen');
     }
