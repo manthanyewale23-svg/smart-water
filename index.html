@@ -535,11 +535,11 @@
     ];
 
     let complaintsData = [
-      { id: 'CMP-101', type: 'Pipeline Leakage', name: 'Priya Mehta', zone: 'Zone C – CBD Belapur', priority: 'CRITICAL', status: 'In Progress' },
-      { id: 'CMP-102', type: 'Low Pressure', name: 'Amit Desai', zone: 'Zone A – Vashi', priority: 'MEDIUM', status: 'Assigned' },
-      { id: 'CMP-103', type: 'Road Leakage', name: 'Sunil Jadhav', zone: 'Zone B – Nerul', priority: 'HIGH', status: 'Reported' },
-      { id: 'CMP-104', type: 'Tank Overflow', name: 'Meera Kulkarni', zone: 'Zone E – Airoli', priority: 'HIGH', status: 'Resolved' },
-      { id: 'CMP-105', type: 'Broken Valve', name: 'Rohan Joshi', zone: 'Zone D – Kharghar', priority: 'LOW', status: 'Reported' },
+      { id: 'CMP-101', type: 'Pipeline Leakage', name: 'Priya Mehta', zone: 'Zone C – CBD Belapur', priority: 'CRITICAL', status: 'In Progress', time: '10:45 PM Today' },
+      { id: 'CMP-102', type: 'Low Pressure', name: 'Amit Desai', zone: 'Zone A – Vashi', priority: 'MEDIUM', status: 'Assigned', time: '09:30 PM Today' },
+      { id: 'CMP-103', type: 'Road Leakage', name: 'Sunil Jadhav', zone: 'Zone B – Nerul', priority: 'HIGH', status: 'Reported', time: '08:15 PM Today' },
+      { id: 'CMP-104', type: 'Tank Overflow', name: 'Meera Kulkarni', zone: 'Zone E – Airoli', priority: 'HIGH', status: 'Resolved', time: '06:00 PM Today' },
+      { id: 'CMP-105', type: 'Broken Valve', name: 'Rohan Joshi', zone: 'Zone D – Kharghar', priority: 'LOW', status: 'Reported', time: '04:20 PM Today' },
     ];
 
     // Real Google Sign-in with Firebase
@@ -794,14 +794,15 @@
         });
 
         marker.bindPopup(`
-          <div class="p-1 space-y-1">
-            <div class="flex items-center gap-1">
+          <div class="p-1 space-y-1 min-w-[200px]">
+            <div class="flex items-center justify-between gap-2">
               <span class="px-1.5 py-0.5 bg-rose-100 text-rose-700 text-[10px] font-bold rounded">⚠️ COMPLAINT</span>
               <span class="font-mono text-xs font-bold text-slate-700">${c.id}</span>
             </div>
             <p class="font-bold text-xs text-slate-900 mt-1">${c.type}</p>
             <p class="text-[11px] text-slate-600">👤 <b>Citizen:</b> ${c.name}</p>
             <p class="text-[11px] text-slate-600">📍 <b>Location:</b> ${c.zone}</p>
+            <p class="text-[11px] text-slate-600">🕒 <b>Reported Time:</b> <span class="font-semibold text-slate-800">${c.time || 'Just now'}</span></p>
             <p class="text-[11px] text-slate-600">📊 <b>Status:</b> <span class="font-semibold text-blue-600">${c.status}</span></p>
           </div>
         `);
@@ -850,13 +851,16 @@
 
     function handleCreateComplaint(e) {
       e.preventDefault();
+      const now = new Date();
+      const timeStr = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) + ' Today';
       const newCmp = {
         id: 'CMP-' + (100 + complaintsData.length + 1),
         type: document.getElementById('modal-type').value,
         name: document.getElementById('modal-name').value,
         zone: document.getElementById('modal-zone').value,
         priority: 'HIGH',
-        status: 'Reported'
+        status: 'Reported',
+        time: timeStr
       };
       complaintsData.unshift(newCmp);
       renderComplaints();
