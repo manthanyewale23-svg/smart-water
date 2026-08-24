@@ -111,35 +111,42 @@
     </div>
   </div>
 
-  <!-- Sidebar -->
-  <aside class="w-64 bg-slate-900 text-white flex flex-col justify-between flex-shrink-0 z-20">
+  <!-- Mobile Sidebar Overlay Backdrop -->
+  <div id="mobile-sidebar-backdrop" onclick="toggleMobileSidebar()" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-30 hidden md:hidden"></div>
+
+  <!-- Sidebar (Responsive: drawer on mobile, fixed width on desktop) -->
+  <aside id="sidebar-container" class="fixed md:static inset-y-0 left-0 -translate-x-full md:translate-x-0 w-72 md:w-64 bg-slate-900 text-white flex flex-col justify-between flex-shrink-0 z-40 transition-transform duration-300 ease-in-out shadow-2xl md:shadow-none">
     <div>
       <!-- Brand -->
-      <div class="flex items-center gap-3 px-6 py-5 border-b border-slate-800 bg-slate-950">
-        <div class="bg-blue-600 rounded-xl p-2.5 shadow-lg shadow-blue-500/30">
-          <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"></path></svg>
+      <div class="flex items-center justify-between px-6 py-5 border-b border-slate-800 bg-slate-950">
+        <div class="flex items-center gap-3">
+          <div class="bg-blue-600 rounded-xl p-2.5 shadow-lg shadow-blue-500/30">
+            <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"></path></svg>
+          </div>
+          <div>
+            <h1 class="font-extrabold text-base tracking-tight leading-tight">SmartWater</h1>
+            <p class="text-xs text-slate-400 font-medium">Navi Mumbai (NMMC)</p>
+          </div>
         </div>
-        <div>
-          <h1 class="font-extrabold text-base tracking-tight leading-tight">SmartWater</h1>
-          <p class="text-xs text-slate-400 font-medium">Navi Mumbai (NMMC) GIS</p>
-        </div>
+        <!-- Close button on mobile -->
+        <button onclick="toggleMobileSidebar()" class="md:hidden text-slate-400 hover:text-white p-1 text-lg font-bold">&times;</button>
       </div>
 
       <!-- Navigation links -->
-      <nav class="p-3 space-y-1">
-        <button onclick="switchTab('dashboard')" id="nav-dashboard" class="nav-item active w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-medium transition-all text-slate-300 hover:bg-slate-800">
+      <nav class="p-3 space-y-1.5">
+        <button onclick="switchTab('dashboard'); closeMobileSidebar()" id="nav-dashboard" class="nav-item active w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all text-slate-300 hover:bg-slate-800">
           <span>📊</span> Dashboard
         </button>
-        <button onclick="switchTab('map')" id="nav-map" class="nav-item w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-medium transition-all text-slate-300 hover:bg-slate-800">
+        <button onclick="switchTab('map'); closeMobileSidebar()" id="nav-map" class="nav-item w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all text-slate-300 hover:bg-slate-800">
           <span>🗺️</span> Water Network Map
         </button>
-        <button onclick="switchTab('sensors')" id="nav-sensors" class="nav-item w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-medium transition-all text-slate-300 hover:bg-slate-800">
+        <button onclick="switchTab('sensors'); closeMobileSidebar()" id="nav-sensors" class="nav-item w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all text-slate-300 hover:bg-slate-800">
           <span>📡</span> Live Telemetry Sensors
         </button>
-        <button onclick="switchTab('complaints')" id="nav-complaints" class="nav-item w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-medium transition-all text-slate-300 hover:bg-slate-800">
+        <button onclick="switchTab('complaints'); closeMobileSidebar()" id="nav-complaints" class="nav-item w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all text-slate-300 hover:bg-slate-800">
           <span>⚠️</span> Citizen Complaints (<span id="badge-complaints">5</span>)
         </button>
-        <button onclick="switchTab('waterloss')" id="nav-waterloss" class="nav-item w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-medium transition-all text-slate-300 hover:bg-slate-800">
+        <button onclick="switchTab('waterloss'); closeMobileSidebar()" id="nav-waterloss" class="nav-item w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all text-slate-300 hover:bg-slate-800">
           <span>💧</span> Water Loss Audit
         </button>
       </nav>
@@ -148,36 +155,41 @@
     <!-- User Profile Footer -->
     <div class="p-4 border-t border-slate-800 bg-slate-950/50 flex items-center justify-between">
       <div class="flex items-center gap-3 min-w-0">
-        <div id="user-avatar" class="w-9 h-9 rounded-full bg-blue-600 font-bold text-sm flex items-center justify-center flex-shrink-0">R</div>
+        <div id="user-avatar" class="w-9 h-9 rounded-full bg-blue-600 font-bold text-sm flex items-center justify-center flex-shrink-0">M</div>
         <div class="min-w-0">
-          <div id="user-display-name" class="text-sm font-semibold leading-tight truncate">Rajesh Kumar</div>
-          <div id="user-role-badge" class="text-xs text-blue-400 font-medium truncate">Chief Water Engineer</div>
+          <div id="user-display-name" class="text-sm font-semibold leading-tight truncate">Manthan Yewale</div>
+          <div id="user-role-badge" class="text-xs text-purple-400 font-medium truncate">NMMC Admin</div>
         </div>
       </div>
-      <button onclick="logoutAuth()" class="text-xs text-slate-400 hover:text-rose-400 ml-2" title="Sign out">🚪</button>
+      <button onclick="logoutAuth()" class="text-sm text-slate-400 hover:text-rose-400 ml-2 p-1" title="Sign out">🚪</button>
     </div>
   </aside>
 
   <!-- Main Content Area -->
-  <div class="flex-1 flex flex-col overflow-hidden">
+  <div class="flex-1 flex flex-col overflow-hidden min-w-0">
 
     <!-- Top Navigation -->
-    <header class="bg-white border-b border-slate-200 px-6 py-3 flex items-center justify-between shadow-sm z-10">
-      <div class="flex items-center gap-3">
-        <span class="text-xs font-semibold uppercase tracking-wider text-slate-400">Urban Water Grid</span>
-        <span class="text-slate-300">/</span>
-        <h2 id="page-title" class="text-base font-bold text-slate-800">City Overview Dashboard</h2>
+    <header class="bg-white border-b border-slate-200 px-4 md:px-6 py-3 flex items-center justify-between shadow-sm z-10">
+      <div class="flex items-center gap-3 min-w-0">
+        <!-- Hamburger Menu button for mobile -->
+        <button onclick="toggleMobileSidebar()" class="md:hidden p-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 transition-all flex-shrink-0" title="Open Menu">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path></svg>
+        </button>
+        <div class="min-w-0 truncate">
+          <h2 id="page-title" class="text-sm md:text-base font-bold text-slate-800 truncate">City Overview Dashboard</h2>
+        </div>
       </div>
 
-      <div class="flex items-center gap-3">
+      <div class="flex items-center gap-2 md:gap-3 flex-shrink-0">
         <!-- Live Simulation Button -->
-        <button id="btn-demo" onclick="toggleLiveDemo()" class="flex items-center gap-2 px-3.5 py-1.5 bg-slate-200 text-slate-700 rounded-lg text-xs font-bold shadow hover:bg-slate-300 transition-all">
+        <button id="btn-demo" onclick="toggleLiveDemo()" class="flex items-center gap-2 px-3 py-1.5 bg-slate-200 text-slate-700 rounded-lg text-[11px] md:text-xs font-bold shadow hover:bg-slate-300 transition-all">
           <span id="demo-indicator" class="w-2 h-2 rounded-full bg-slate-400"></span>
-          <span id="demo-label">Live Telemetry: OFF</span>
+          <span id="demo-label" class="hidden sm:inline">Live Telemetry: OFF</span>
+          <span class="sm:hidden">OFF</span>
         </button>
 
-        <div class="text-xs font-medium text-slate-500 bg-slate-100 px-3 py-1.5 rounded-lg border border-slate-200">
-          📍 Navi Mumbai (NMMC) Area
+        <div class="text-[11px] md:text-xs font-medium text-slate-500 bg-slate-100 px-2.5 py-1.5 rounded-lg border border-slate-200 hidden sm:block">
+          📍 Navi Mumbai
         </div>
       </div>
     </header>
@@ -589,6 +601,25 @@
         await auth.signOut();
       } catch (e) {}
       document.getElementById('auth-modal').classList.remove('hidden');
+    }
+
+    function toggleMobileSidebar() {
+      const sidebar = document.getElementById('sidebar-container');
+      const backdrop = document.getElementById('mobile-sidebar-backdrop');
+      if (sidebar.classList.contains('-translate-x-full')) {
+        sidebar.classList.remove('-translate-x-full');
+        backdrop.classList.remove('hidden');
+      } else {
+        sidebar.classList.add('-translate-x-full');
+        backdrop.classList.add('hidden');
+      }
+    }
+
+    function closeMobileSidebar() {
+      const sidebar = document.getElementById('sidebar-container');
+      const backdrop = document.getElementById('mobile-sidebar-backdrop');
+      if (sidebar) sidebar.classList.add('-translate-x-full');
+      if (backdrop) backdrop.classList.add('hidden');
     }
 
     function switchTab(tabId) {
