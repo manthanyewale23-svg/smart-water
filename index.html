@@ -113,13 +113,16 @@
       </div>
 
       <div class="space-y-2">
-        <button onclick="selectGoogleAccount('Manthan Deshmukh', 'manthan.deshmukh@gmail.com')" class="w-full flex items-center gap-3 p-3 rounded-2xl hover:bg-blue-50/70 border border-slate-200 transition-all text-left group">
-          <div class="w-9 h-9 rounded-full bg-blue-600 text-white font-bold flex items-center justify-center text-sm shadow-sm group-hover:scale-105 transition-transform">M</div>
+        <button onclick="selectGoogleAccount('Manthan Yewale (Admin)', 'manthanyewale23@gmail.com')" class="w-full flex items-center gap-3 p-3 rounded-2xl hover:bg-purple-50/70 border border-purple-200 bg-purple-50/30 transition-all text-left group">
+          <div class="w-9 h-9 rounded-full bg-purple-600 text-white font-bold flex items-center justify-center text-sm shadow-sm group-hover:scale-105 transition-transform">M</div>
           <div class="min-w-0 flex-1">
-            <div class="font-bold text-slate-900 text-xs truncate">Manthan Deshmukh</div>
-            <div class="text-[11px] text-slate-500 truncate">manthan.deshmukh@gmail.com</div>
+            <div class="flex items-center gap-1.5">
+              <span class="font-bold text-slate-900 text-xs truncate">Manthan Yewale</span>
+              <span class="px-1.5 py-0.2 bg-purple-100 text-purple-700 font-bold text-[9px] rounded uppercase">Admin</span>
+            </div>
+            <div class="text-[11px] text-slate-500 truncate">manthanyewale23@gmail.com</div>
           </div>
-          <span class="text-xs text-blue-600 font-semibold opacity-0 group-hover:opacity-100 transition-opacity">Select →</span>
+          <span class="text-xs text-purple-600 font-semibold opacity-0 group-hover:opacity-100 transition-opacity">Select →</span>
         </button>
 
         <button onclick="selectGoogleAccount('Citizen User', 'citizen.user@gmail.com')" class="w-full flex items-center gap-3 p-3 rounded-2xl hover:bg-emerald-50/70 border border-slate-200 transition-all text-left group">
@@ -563,13 +566,17 @@
 
     function selectGoogleAccount(name, email) {
       closeGooglePicker();
-      handleAuthLogin(name, email, 'citizen');
+      const role = (email.toLowerCase() === 'manthanyewale23@gmail.com') ? 'admin' : 'citizen';
+      handleAuthLogin(name, email, role);
     }
 
     function handleAuthLogin(name, email, role) {
+      if (email && email.toLowerCase() === 'manthanyewale23@gmail.com') {
+        role = 'admin';
+      }
       document.getElementById('user-display-name').textContent = name;
       document.getElementById('user-avatar').textContent = name.charAt(0).toUpperCase();
-      document.getElementById('user-role-badge').textContent = role.toUpperCase() + ' Portal (' + email + ')';
+      document.getElementById('user-role-badge').textContent = (role === 'admin' ? 'NMMC Water Chief (Admin)' : 'Citizen Portal') + ' • ' + email;
       document.getElementById('auth-modal').classList.add('hidden');
     }
 
